@@ -1,0 +1,9 @@
+# Pinned to the versions in the conda environment the code was developed and verified with (Python 3.10.16, CUDA 12.6)
+numpy==1.26.4
+torch==2.5.1
+gymnasium==1.2.2
+gymnasium-robotics==1.4.1
+mujoco==3.2.6
+pettingzoo==1.25.0
+pyyaml==6.0.3
+pypickle==2.0.2

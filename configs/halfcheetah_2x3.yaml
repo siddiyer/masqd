@@ -1,0 +1,51 @@
+# MASQD on Multiagent MuJoCo HalfCheetah 2x3 (2 agents).
+# Seed, device and output directories are command-line arguments (python -m masqd.train --help).
+# Write floats with a decimal point (0.0003 or 3.0e-4): YAML reads 3e-4 as text.
+
+env:
+  name: halfcheetah2x3             # names the log and result files
+  scenario: HalfCheetah
+  agent_conf: "2x3"
+  num_agents: 2
+  state_dim: 12                    # per-agent observation size; smaller observations are zero-padded
+  action_dim: 3
+  # Behavior descriptor: fraction of timesteps each of these geoms touches the floor, in this order.
+  # The names are only used to check that the IDs point at the expected geoms.
+  foot_geom_ids: [5, 8]
+  foot_geom_names: [bfoot, ffoot]
+  bd_decimals: 2                   # descriptors are rounded to this many decimals (one archive cell per value)
+
+masqd:
+  max_env_steps: 10000000
+  population_size: 10              # first half evaluated directly, second half refined with the critic first
+  elite_frac: 0.5                  # fraction of the population used in the CEM update
+  warmup_iterations: 5             # CEM-only iterations before refinement starts
+  resample_every: 5                # re-anchor the CEM mean on an archive policy every this many iterations
+  sigma_init: 0.001                # initial (and re-anchored) diagonal covariance
+  damp_init: 0.001                 # covariance damping, decays towards damp_limit at rate damp_tau
+  damp_limit: 0.00001
+  damp_tau: 0.95
+  target_bd_noise: 0.0004          # std of the noise added to the anchor's descriptor to get the target
+  critic_update_interval: 10000    # env steps between critic training rounds
+  num_target_labeled: 3            # refined policies whose transitions are labeled with the target descriptor
+
+networks:
+  actor_hidden_size: 128           # shared trunk; each agent head has hidden/4 and hidden/8 units
+  critic_hidden_size: 256
+
+dc_td3:
+  max_action: 1.0
+  discount: 0.99
+  tau: 0.005
+  policy_noise: 0.2
+  noise_clip: 0.5
+  policy_freq: 2
+  lr: 0.0003                       # actor and critic learning rate
+  batch_size: 256
+  similarity_scale: 0.1            # l in the reward similarity exp(-||d' - d|| / l)
+  refine_steps: 150                # gradient ascent steps per agent when refining a policy
+  refine_lr: 0.005
+  refine_batch_size: 100
+
+replay_buffer:
+  max_size: 500000                 # per agent
